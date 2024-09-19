@@ -28,5 +28,5 @@ SELECT strategies, strategy_type, avg_profit_factor
 FROM average_profit_factor_table
 UNION ALL
 SELECT 'Среднее значение' AS strategies, '-' AS strategy_type, ROUND(AVG(profit_factor), 2) AS avg_profit_factor
-  FROM profit_factor_table
+  FROM profit_factor_table;
 
