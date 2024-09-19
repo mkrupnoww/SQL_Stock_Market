@@ -8,6 +8,6 @@ ORDER BY entry_date
 SELECT entry_date, round(sum(bp) / 4) AS depo
 FROM bp_day
 GROUP BY entry_date 
-ORDER BY entry_date
+ORDER BY entry_date;
 
 
