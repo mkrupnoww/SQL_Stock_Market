@@ -32,7 +32,7 @@ SELECT
 FROM 
     drawdown_series
    ORDER BY 
-    date_day ASC
+    date_day ASC;
     
     
     
