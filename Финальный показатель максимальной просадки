@@ -1,0 +1,72 @@
+WITH dayly_over_sums AS (
+    SELECT
+        DATE_TRUNC('day', exit_date)::date AS date_day,
+        SUM(profit_loss_fee) AS day_sumover
+    FROM
+        test.sum
+    WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
+    AND strategy_type = 'overnight'  
+    GROUP BY
+        DATE_TRUNC('day', exit_date)::date
+    ORDER BY
+        DATE_TRUNC('day', exit_date)::date
+), dayly_over_march AS (
+   SELECT
+        DATE_TRUNC('day', exit_date)::date AS date_day,
+        SUM(profit_loss_fee) * 9 AS daysumover_march
+    FROM
+        test.sum
+    WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021'
+    AND strategy_type = 'overnight'  
+    AND EXTRACT(MONTH FROM entry_date) = '3'
+    GROUP BY
+        DATE_TRUNC('day', exit_date)::date
+    ORDER BY
+        DATE_TRUNC('day', exit_date)::date
+), dayly_int_sums AS (
+    SELECT
+        DATE_TRUNC('day', exit_date)::date AS date_day,
+        SUM(profit_loss_fee) * 1.4 AS day_sumint
+    FROM
+        test.sum
+    WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021'
+    AND strategy_type = 'intraday'     
+    GROUP BY
+        DATE_TRUNC('day', exit_date)::date
+    ORDER BY
+        DATE_TRUNC('day', exit_date)::date
+), dayly_sums AS (
+    SELECT 
+        COALESCE(dos.date_day, dis.date_day, dom.date_day) AS date_day,
+        COALESCE(dos.day_sumover, 0) + COALESCE(dis.day_sumint, 0) + COALESCE(dom.daysumover_march, 0) AS total_sum
+    FROM 
+        dayly_over_sums AS dos
+    FULL JOIN 
+        dayly_int_sums AS dis ON dos.date_day = dis.date_day
+     FULL JOIN    
+        dayly_over_march AS dom ON dos.date_day = dom.date_day  
+),
+cumulative_profit_loss AS (
+    SELECT 
+        date_day, 
+        total_sum, 
+        SUM(total_sum) OVER (ORDER BY date_day) AS cumulative_sum
+    FROM 
+        dayly_sums
+),
+drawdown_series AS (
+    SELECT 
+        date_day, 
+        total_sum, 
+        cumulative_sum, 
+        cumulative_sum - MAX(cumulative_sum) OVER (ORDER BY date_day ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS drawdown
+    FROM 
+        cumulative_profit_loss
+)
+SELECT 
+     round((drawdown::NUMERIC / 2000000 * 100.0), 2) "%"
+FROM 
+    drawdown_series
+ORDER BY 
+    drawdown ASC
+LIMIT 1;

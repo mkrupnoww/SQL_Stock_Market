@@ -1,0 +1,61 @@
+--финальная таблица доходности по месяцам после увеличения в марте
+WITH return_total AS (
+        SELECT 
+    EXTRACT(YEAR FROM date_day) AS year_date,
+    EXTRACT(MONTH FROM date_day) AS month_date,
+    round((sum(total_sum)::NUMERIC / 2000000.0 * 100), 2) AS RETURN
+    FROM test.table_pnl_optim_march tpo 
+GROUP BY EXTRACT(YEAR FROM date_day), EXTRACT(MONTH FROM date_day)
+ORDER BY year_date, month_date
+),
+yearly_totals AS (
+       SELECT 
+        year_date, 
+        sum(return) AS yearly_sum
+    FROM return_total
+    GROUP BY year_date
+)
+SELECT 
+    ct.year_date,  
+    COALESCE(ct."январь", 0) AS "январь", 
+    COALESCE(ct."февраль", 0) AS "февраль",  
+    COALESCE(ct."март", 0) AS "март",  
+    COALESCE(ct."апрель", 0) AS "апрель",  
+    COALESCE(ct."май", 0) AS "май",  
+    COALESCE(ct."июнь", 0) AS "июнь",  
+    COALESCE(ct."июль", 0) AS "июль",  
+    COALESCE(ct."август", 0) AS "август",  
+    COALESCE(ct."сентябрь", 0) AS "сентябрь",  
+    COALESCE(ct."октябрь", 0) AS "октябрь",  
+    COALESCE(ct."ноябрь", 0) AS "ноябрь",  
+    COALESCE(ct."декабрь", 0) AS "декабрь",  
+    yt.yearly_sum  
+FROM crosstab(
+        'SELECT year_date, month_date, return
+     FROM (
+         SELECT 
+    EXTRACT(YEAR FROM date_day) AS year_date,
+    EXTRACT(MONTH FROM date_day) AS month_date,
+    round((sum(total_sum)::NUMERIC / 2000000.0 * 100), 2) AS RETURN
+    FROM test.table_pnl_optim_march tpo 
+GROUP BY EXTRACT(YEAR FROM date_day), EXTRACT(MONTH FROM date_day)
+ORDER BY year_date, month_date
+     ) AS pivot_data',
+        'SELECT generate_series(1, 12)'
+) AS ct (
+    year_date int,  
+    "январь" numeric,  
+    "февраль" numeric,  
+    "март" numeric,  
+    "апрель" numeric,  
+    "май" numeric,  
+    "июнь" numeric,  
+    "июль" numeric,  
+    "август" numeric,  
+    "сентябрь" numeric,  
+    "октябрь" numeric,  
+    "ноябрь" numeric,  
+    "декабрь" numeric  
+)
+JOIN yearly_totals yt ON ct.year_date = yt.year_date;
+

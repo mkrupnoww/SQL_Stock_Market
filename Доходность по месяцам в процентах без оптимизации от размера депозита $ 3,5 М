@@ -1,0 +1,52 @@
+CREATE EXTENSION IF NOT EXISTS tablefunc;
+WITH return_total AS (
+        SELECT 
+        EXTRACT(YEAR FROM exit_date) AS year_date, 
+        EXTRACT(MONTH FROM exit_date) AS month_date,
+        round((sum(profit_loss_fee)::NUMERIC / 3500000.0 * 100), 2) AS return
+    FROM test.sum s 
+    WHERE EXTRACT(YEAR FROM exit_date) BETWEEN 1970 AND 2022
+    GROUP BY EXTRACT(YEAR FROM exit_date), EXTRACT(MONTH FROM exit_date)
+    ORDER BY year_date, month_date
+),
+yearly_totals AS (
+       SELECT 
+        year_date, 
+        sum(return) AS yearly_sum
+    FROM return_total
+    GROUP BY year_date
+)
+SELECT 
+    ct.*, 
+    yt.yearly_sum 
+FROM crosstab(
+        'SELECT year_date, month_date, return
+     FROM (
+         SELECT 
+             EXTRACT(YEAR FROM exit_date) AS year_date, 
+             EXTRACT(MONTH FROM exit_date) AS month_date,
+             round((sum(profit_loss_fee)::NUMERIC / 3500000.0 * 100), 2) AS return
+         FROM test.sum s 
+         WHERE EXTRACT(YEAR FROM exit_date) BETWEEN 1970 AND 2022
+         GROUP BY EXTRACT(YEAR FROM exit_date), EXTRACT(MONTH FROM exit_date)
+         ORDER BY year_date, month_date
+     ) AS pivot_data',
+       'SELECT generate_series(1, 12)'
+) AS ct (
+    year_date int, 
+    "январь" numeric, 
+    "февраль" numeric, 
+    "март" numeric, 
+    "апрель" numeric, 
+    "май" numeric, 
+    "июнь" numeric, 
+    "июль" numeric, 
+    "август" numeric, 
+    "сентябрь" numeric, 
+    "октябрь" numeric, 
+    "ноябрь" numeric, 
+    "декабрь" numeric
+)
+JOIN yearly_totals yt ON ct.year_date = yt.year_date;
+
+

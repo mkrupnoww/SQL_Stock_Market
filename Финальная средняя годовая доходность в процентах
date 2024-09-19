@@ -1,0 +1,11 @@
+WITH avg_year_profit AS 
+(
+    SELECT
+        DATE_TRUNC('year', date_day)::date AS date_year,
+        SUM(total_sum) AS year_sum
+    FROM test.table_pnl_optim_march
+    GROUP BY DATE_TRUNC('year', date_day)::date
+    ORDER BY DATE_TRUNC('year', date_day)::date
+)
+SELECT round((avg(year_sum)::NUMERIC / 2000000 * 100.0), 2) AS "%"
+FROM avg_year_profit

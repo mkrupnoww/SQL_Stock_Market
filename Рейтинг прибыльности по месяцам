@@ -1,0 +1,82 @@
+WITH max_month AS
+(
+SELECT
+     EXTRACT(YEAR FROM entry_date) AS YEAR, 
+     EXTRACT(MONTH FROM entry_date) AS trade_month, 
+     round(sum(profit_loss_fee)) AS sum_frofit
+FROM 
+    test.sum
+GROUP BY 
+         EXTRACT(YEAR FROM entry_date), 
+         EXTRACT(MONTH FROM entry_date)
+ORDER BY  
+        YEAR,
+        trade_month
+        ),
+        month_rank AS
+        (
+        SELECT 
+             YEAR, trade_month, sum_frofit,
+             RANK() OVER (PARTITION BY YEAR ORDER BY sum_frofit DESC) AS profit_rank      
+        FROM max_month
+ORDER BY YEAR
+),
+best_month AS
+(
+SELECT  
+       CASE trade_month
+       WHEN 1 THEN 'январь' 
+    WHEN 2 THEN 'февраль' 
+    WHEN 3 THEN 'март' 
+    WHEN 4 THEN 'апрель' 
+    WHEN 5 THEN 'май' 
+    WHEN 6 THEN 'июнь' 
+    WHEN 7 THEN 'июль' 
+    WHEN 8 THEN 'август' 
+    WHEN 9 THEN 'сентябрь' 
+    WHEN 10 THEN 'октябрь' 
+    WHEN 11 THEN 'ноябрь' 
+    WHEN 12 THEN 'декабрь'     
+    END AS month_ru, count(trade_month) OVER (PARTITION BY trade_month) AS number_best     
+FROM month_rank
+WHERE profit_rank = 1
+ORDER BY trade_month
+)
+SELECT month_ru, number_best
+FROM best_month
+GROUP BY month_ru, number_best
+ORDER BY number_best DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

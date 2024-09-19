@@ -1,0 +1,38 @@
+WITH daily_profit_loss AS (
+    SELECT 
+        DATE_TRUNC('day', exit_date)::date AS date_day, 
+        SUM(profit_loss_fee) AS daily_profit_loss 
+    FROM 
+        test.sum
+        GROUP BY 
+        date_day
+),
+cumulative_profit_loss AS (
+    SELECT 
+        date_day, 
+        daily_profit_loss, 
+        SUM(daily_profit_loss) OVER (ORDER BY date_day) AS cumulative_sum
+    FROM 
+        daily_profit_loss
+),
+drawdown_series AS (
+    SELECT 
+        date_day, 
+        daily_profit_loss, 
+        cumulative_sum, 
+        cumulative_sum - MAX(cumulative_sum) OVER (ORDER BY date_day ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS drawdown
+    FROM 
+        cumulative_profit_loss
+)
+SELECT 
+    date_day, 
+    daily_profit_loss,
+    cumulative_sum,  
+    drawdown
+FROM 
+    drawdown_series
+   ORDER BY 
+    date_day ASC
+    
+    
+    

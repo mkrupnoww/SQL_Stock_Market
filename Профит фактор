@@ -1,0 +1,32 @@
+WITH profit_table AS 
+(
+  SELECT strategies, SUM(profit_loss_fee) AS p, strategy_type 
+  FROM test.sum
+  WHERE profit_loss_fee >= 0
+  GROUP BY strategies, strategy_type
+),
+loss_table AS 
+(
+  SELECT strategies, SUM(profit_loss_fee) AS l
+  FROM test.sum
+  WHERE profit_loss_fee < 0
+  GROUP BY strategies
+), 
+profit_factor_table AS
+(
+  SELECT pt.strategies, pt.strategy_type, ROUND((p::NUMERIC / l::NUMERIC * -1), 2) AS profit_factor
+  FROM profit_table pt 
+  JOIN loss_table lt ON pt.strategies = lt.strategies
+),
+average_profit_factor_table AS
+(
+  SELECT strategies, strategy_type, ROUND(AVG(profit_factor), 2) AS avg_profit_factor
+  FROM profit_factor_table
+  GROUP BY strategies, strategy_type
+)
+SELECT strategies, strategy_type, avg_profit_factor
+FROM average_profit_factor_table
+UNION ALL
+SELECT 'Среднее значение' AS strategies, '-' AS strategy_type, ROUND(AVG(profit_factor), 2) AS avg_profit_factor
+  FROM profit_factor_table
+

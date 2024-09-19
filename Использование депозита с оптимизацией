@@ -1,0 +1,12 @@
+WITH bp_day AS 
+(
+SELECT entry_date, strategy_type, entry_price, sum(quantity) AS sum_size, round(sum(quantity * 1.4 * entry_price)) AS bp
+FROM test.sum 
+WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021'
+GROUP BY entry_date, entry_price, strategy_type
+ORDER BY entry_date
+)
+SELECT entry_date, round(sum(bp) / 7) AS depo
+FROM bp_day
+GROUP BY entry_date
+ORDER BY entry_date ASC  

@@ -1,0 +1,41 @@
+WITH bp_overnight AS 
+(
+SELECT entry_date, round(sum(quantity * entry_price)) AS bp_over
+FROM test.sum 
+WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
+AND strategy_type = 'overnight'  
+GROUP BY entry_date
+ORDER BY entry_date
+),bp_over_march AS (
+SELECT entry_date, round(sum(quantity * 9 * entry_price)) AS bp_march
+FROM test.sum 
+WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
+AND strategy_type = 'overnight'  
+AND EXTRACT(MONTH FROM entry_date) = '3'
+GROUP BY entry_date
+ORDER BY entry_date
+),
+bp_intraday AS (
+SELECT entry_date, round(sum(quantity * 1.4 * entry_price)) AS bp_int
+FROM test.sum 
+WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
+AND strategy_type = 'intraday'  
+GROUP BY entry_date
+ORDER BY entry_date
+),
+dayly_sums AS (
+    SELECT 
+        COALESCE(dos.entry_date, dis.entry_date, dom.entry_date) AS date_day,
+        COALESCE(dos.bp_over, 0) + COALESCE(dis.bp_int, 0) + COALESCE(dom.bp_march, 0) AS sum_bp
+    FROM 
+        bp_overnight AS dos
+    FULL JOIN 
+        bp_intraday AS dis ON dos.entry_date = dis.entry_date
+    FULL JOIN    
+        bp_over_march AS dom ON dos.entry_date = dom.entry_date  
+)
+SELECT date_day, round((sum(sum_bp)) / 7) AS depo_optim
+FROM dayly_sums
+GROUP BY date_day
+ORDER BY date_day;
+

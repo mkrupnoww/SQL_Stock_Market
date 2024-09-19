@@ -1,0 +1,11 @@
+WITH avg_year_profit AS 
+(
+    SELECT
+        DATE_TRUNC('year', exit_date)::date AS date_year,
+        SUM(profit_loss_fee) AS year_sum
+    FROM test.sum
+    GROUP BY DATE_TRUNC('year', exit_date)::date
+    ORDER BY DATE_TRUNC('year', exit_date)::date
+)
+SELECT round((avg(year_sum)::NUMERIC / 3500000 * 100.0), 2) AS "%"
+FROM avg_year_profit
