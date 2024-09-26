@@ -9,6 +9,6 @@ WHERE strategy_type = 'overnight'
       AND entry_date BETWEEN '1994-01-01' AND '2021-12-31'
 )
 SELECT date_trunc('day', AVG(length_dael)) AS "Средняя продолжительность сделок"
-FROM length_deal_tab
+FROM length_deal_tab;
 
 
