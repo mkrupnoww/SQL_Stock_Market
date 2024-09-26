@@ -1,0 +1,12 @@
+WITH length_deal_tab AS (
+SELECT 
+    DISTINCT deal_id,
+             entry_date,
+             exit_date,
+             exit_date - entry_date AS length_deal
+FROM test.sum_time_id sti 
+WHERE strategy_type = 'intraday'
+  AND entry_date BETWEEN '2007-04-30' AND '2021-12-31'
+)
+SELECT date_trunc('minute', AVG(length_deal)) AS "Средняя продолжительность сделок"
+FROM length_deal_tab
