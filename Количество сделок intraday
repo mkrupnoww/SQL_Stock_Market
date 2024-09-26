@@ -1,0 +1,18 @@
+WITH count_deal_tab AS (
+  SELECT count(DISTINCT deal_id) AS count_deal
+  FROM test.sum_time_id sti
+  WHERE strategy_type = 'intraday'
+    AND entry_date BETWEEN '2007-04-30' AND '2021-12-31'
+),
+series_date_tab AS (
+  SELECT COUNT(*) AS count_trade_day
+  FROM generate_series(
+      '2007-04-30'::date, 
+      '2021-12-31'::date, 
+      '1 day'::interval
+  ) AS series_date
+  WHERE EXTRACT(ISODOW FROM series_date) NOT IN (6, 7)  
+)
+SELECT cdt.count_deal AS "Общее количество сделок",
+       round((cdt.count_deal::NUMERIC / sdt.count_trade_day), 1) AS "Сделок в среднем в день"
+FROM count_deal_tab cdt, series_date_tab sdt;
