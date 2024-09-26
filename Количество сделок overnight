@@ -1,0 +1,17 @@
+WITH count_deal_tab AS (
+  SELECT count(DISTINCT deal_id) AS count_deal
+  FROM test.sum_time_id sti
+  WHERE strategy_type = 'overnight'
+    AND entry_date BETWEEN '1994-01-01' AND '2021-12-31'
+),
+series_date_tab AS (
+  SELECT COUNT(*) AS count_trade_month
+  FROM generate_series(
+      '1994-01-01'::date, 
+      '2021-12-31'::date, 
+      '1 month'::interval
+  ) AS series_date
+  )
+SELECT cdt.count_deal AS "Общее количество сделок", 
+       round((cdt.count_deal::NUMERIC / sdt.count_trade_month), 1) AS "Сделок в среднем в месяц"
+FROM count_deal_tab cdt, series_date_tab sdt;
