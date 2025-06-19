@@ -1,0 +1,91 @@
+WITH  return_year_tab AS (
+SELECT EXTRACT (YEAR FROM date_day) AS date_day_year, 
+       round(sum((total_sum)::numeric / 2000000 * 100.0), 2) AS return_year
+       FROM test.tab_pnl_optim_march_dw tmd
+GROUP BY date_day_year
+HAVING round(sum((total_sum)::numeric / 2000000 * 100.0), 2)  < 0
+ORDER BY date_day_year
+), avg_return_tab AS (
+SELECT date_day_year,   
+       return_year,
+       avg(return_year) OVER () AS avg_return
+FROM return_year_tab
+), diff_return_power AS (
+SELECT date_day_year,   
+       return_year,
+       avg(return_year) OVER () AS avg_return,
+       (return_year - avg_return) AS diff_return,
+       round((power((return_year - avg_return), 2)), 2) AS diff_return_power
+FROM avg_return_tab
+ORDER BY date_day_year
+), count_year_tab AS (
+SELECT date_day_year,   
+       return_year,
+       avg(return_year) OVER () AS avg_return,
+       (return_year - avg_return) AS diff_return,
+       round((power((return_year - avg_return), 2)), 2) AS diff_return_power,
+       sum(diff_return_power) OVER () sum_power,
+       count(date_day_year) OVER () AS count_year
+FROM diff_return_power
+GROUP BY date_day_year, return_year, avg_return, diff_return_power
+ORDER BY date_day_year
+), dispersion_tab AS (
+SELECT date_day_year,   
+       return_year,
+       avg(return_year) OVER () AS avg_return,
+       (return_year - avg_return) AS diff_return,
+       round((power((return_year - avg_return), 2)), 2) AS diff_return_power,
+       sum(diff_return_power) OVER () sum_power,
+       count(date_day_year) OVER () AS count_year,
+       round((sum_power / (count_year - 1)), 2) AS dispersion
+FROM count_year_tab
+), standard_deviation_tab_all AS (
+SELECT ROW_NUMBER() OVER () AS NUMBER, --нумерация
+       date_day_year,   
+       return_year,
+       avg(return_year) OVER () AS avg_return,
+       (return_year - avg_return) AS diff_return,
+       round((power((return_year - avg_return), 2)), 2) AS diff_return_power,
+       sum(diff_return_power) OVER () sum_power,
+       count(date_day_year) OVER () AS count_year,
+       round((sum_power / (count_year)), 2) AS dispersion,
+       round((SQRT(dispersion)), 2) AS standard_deviation
+FROM dispersion_tab
+), standard_deviation_tab AS (
+SELECT ROW_NUMBER() OVER () AS NUMBER,
+       standard_deviation --стандартное отклонение prec
+FROM standard_deviation_tab_all
+LIMIT 1 
+), avg_year_return AS (
+     WITH avg_year_profit AS 
+(
+    SELECT
+        DATE_TRUNC('year', date_day)::date AS date_year,
+        SUM(total_sum) AS year_sum
+    FROM test.tab_pnl_optim_march_dw
+    GROUP BY DATE_TRUNC('year', date_day)::date
+    ORDER BY DATE_TRUNC('year', date_day)::date
+)
+SELECT ROW_NUMBER() OVER () AS NUMBER,
+       round((avg(year_sum)::NUMERIC / 2000000 * 100.0), 2) AS return_prec
+FROM avg_year_profit
+), avg_bods AS (
+WITH avg_year AS (
+SELECT DATE_TRUNC('YEAR', date)::date AS yaer_date, 
+       round(avg(CLOSE::NUMERIC),3) AS avg_year
+   FROM test.us10yt uy 
+   GROUP BY yaer_date
+   ORDER BY yaer_date
+)
+SELECT ROW_NUMBER() OVER () AS NUMBER,
+       round((AVG(avg_year)), 3) AS avg_year_bonds
+    FROM avg_year
+), sortino_form AS (
+    SELECT standard_deviation, return_prec, avg_year_bonds
+    FROM standard_deviation_tab AS sdt
+    JOIN avg_year_return AS ayr ON sdt.NUMBER = ayr.NUMBER
+    JOIN avg_bods AS ab ON ayr.NUMBER = ab.NUMBER
+    )
+    SELECT round(((return_prec - avg_year_bonds) / standard_deviation), 2) AS sortino_ratio_classic
+    FROM sortino_form 
+    
