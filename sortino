@@ -62,8 +62,7 @@ LIMIT 1
     FROM test.tab_pnl_optim_march_dw
     GROUP BY DATE_TRUNC('year', date_day)::date
  )
-SELECT ROW_NUMBER() OVER () AS NUMBER,
-       (avg(year_sum)::NUMERIC / 2000000 * 100.0) AS return_prec
+SELECT (avg(year_sum)::NUMERIC / 2000000 * 100.0) AS return_prec
 FROM avg_year_profit
 ), avg_bods AS (
 WITH avg_year AS (
@@ -72,14 +71,17 @@ SELECT DATE_TRUNC('YEAR', date)::date AS yaer_date,
    FROM test.us10yt uy 
    GROUP BY yaer_date
 )
-SELECT ROW_NUMBER() OVER () AS NUMBER,
-       (AVG(avg_year))AS avg_year_bonds
+SELECT (AVG(avg_year))AS avg_year_bonds
     FROM avg_year
 ), sortino_form AS (
     SELECT standard_deviation, return_prec, avg_year_bonds
-    FROM standard_deviation_tab AS sdt
-    JOIN avg_year_return AS ayr ON sdt.NUMBER = ayr.NUMBER
-    JOIN avg_bods AS ab ON ayr.NUMBER = ab.NUMBER
-    )
+    FROM standard_deviation_tab, avg_year_return, avg_bods
+)
     SELECT round(((return_prec - avg_year_bonds) / standard_deviation), 2) AS sortino_ratio_classic
-    FROM sortino_form;
+    FROM sortino_form 
+    
+    
+    
+    
+    
+    
