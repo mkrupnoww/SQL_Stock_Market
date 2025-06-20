@@ -8,9 +8,7 @@ WITH dayly_over_sums AS (
     AND strategy_type = 'overnight'  
     GROUP BY
         DATE_TRUNC('day', exit_date)::date
-    ORDER BY
-        DATE_TRUNC('day', exit_date)::date
-), dayly_over_march AS (
+ ), dayly_over_march AS (
    SELECT
         DATE_TRUNC('day', exit_date)::date AS date_day,
         SUM(profit_loss_fee) * 9 AS daysumover_march
@@ -21,9 +19,7 @@ WITH dayly_over_sums AS (
     AND EXTRACT(MONTH FROM entry_date) = '3'
     GROUP BY
         DATE_TRUNC('day', exit_date)::date
-    ORDER BY
-        DATE_TRUNC('day', exit_date)::date
-), dayly_int_sums AS (
+ ), dayly_int_sums AS (
     SELECT
         DATE_TRUNC('day', exit_date)::date AS date_day,
         SUM(profit_loss_fee) * 1.4 AS day_sumint
@@ -33,9 +29,7 @@ WITH dayly_over_sums AS (
     AND strategy_type = 'intraday'     
     GROUP BY
         DATE_TRUNC('day', exit_date)::date
-    ORDER BY
-        DATE_TRUNC('day', exit_date)::date
-), dayly_sums AS (
+ ), dayly_sums AS (
     SELECT 
         COALESCE(dos.date_day, dis.date_day, dom.date_day) AS date_day,
         COALESCE(dos.day_sumover, 0) + COALESCE(dis.day_sumint, 0) + COALESCE(dom.daysumover_march, 0) AS total_sum
