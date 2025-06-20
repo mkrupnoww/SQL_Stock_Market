@@ -44,7 +44,6 @@ WITH avg_year_profit AS
         SUM(profit_loss_fee) AS year_sum
     FROM test.sum
     GROUP BY DATE_TRUNC('year', exit_date)::date
-    ORDER BY DATE_TRUNC('year', exit_date)::date
 )
 SELECT round(avg(year_sum))::NUMERIC AS avg_year_return
 FROM avg_year_profit)
