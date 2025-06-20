@@ -37,7 +37,7 @@ SELECT date_day_year,
        (sum_power / (count_year - 1)) AS dispersion
 FROM count_year_tab
 ), standard_deviation_tab_all AS (
-SELECT ROW_NUMBER() OVER () AS NUMBER, --нумерация
+SELECT ROW_NUMBER() OVER () AS NUMBER, 
        date_day_year,   
        return_year,
        avg(return_year) OVER () AS avg_return,
@@ -50,8 +50,9 @@ SELECT ROW_NUMBER() OVER () AS NUMBER, --нумерация
 FROM dispersion_tab
 ), standard_deviation_tab AS (
 SELECT ROW_NUMBER() OVER () AS NUMBER,
-       standard_deviation --стандартное отклонение prec
+       standard_deviation 
 FROM standard_deviation_tab_all
+ORDER BY NUMBER
 LIMIT 1 
 ), avg_year_return AS (
      WITH avg_year_profit AS 
@@ -78,7 +79,7 @@ SELECT (AVG(avg_year))AS avg_year_bonds
     FROM standard_deviation_tab, avg_year_return, avg_bods
 )
     SELECT round(((return_prec - avg_year_bonds) / standard_deviation), 2) AS sortino_ratio_classic
-    FROM sortino_form 
+    FROM sortino_form;
     
     
     
