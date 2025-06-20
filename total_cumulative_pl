@@ -6,8 +6,6 @@ WITH dayly_sums AS (
         test.sum
     GROUP BY
         DATE_TRUNC('day', exit_date)::date
-    ORDER BY
-        DATE_TRUNC('day', exit_date)::date
 )
 SELECT
     date_day,
