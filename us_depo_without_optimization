@@ -3,7 +3,6 @@ WITH bp_day AS
 SELECT entry_date , entry_price, sum(quantity) AS sum_size, round(sum(quantity * entry_price)) AS bp
 FROM test.sum 
 GROUP BY entry_date, entry_price
-ORDER BY entry_date
 )
 SELECT entry_date, round(sum(bp) / 4) AS depo
 FROM bp_day
