@@ -5,7 +5,6 @@ FROM test.sum
 WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
 AND strategy_type = 'overnight'  
 GROUP BY entry_date
-ORDER BY entry_date
 ),bp_over_march AS (
 SELECT entry_date, round(sum(quantity * 9 * entry_price)) AS bp_march
 FROM test.sum 
@@ -13,7 +12,6 @@ WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FR
 AND strategy_type = 'overnight'  
 AND EXTRACT(MONTH FROM entry_date) = '3'
 GROUP BY entry_date
-ORDER BY entry_date
 ),
 bp_intraday AS (
 SELECT entry_date, round(sum(quantity * 1.4 * entry_price)) AS bp_int
@@ -21,7 +19,6 @@ FROM test.sum
 WHERE EXTRACT(YEAR FROM exit_date) BETWEEN '1994' AND '2021' AND EXTRACT(YEAR FROM entry_date) BETWEEN '1994' AND '2021' 
 AND strategy_type = 'intraday'  
 GROUP BY entry_date
-ORDER BY entry_date
 ),
 dayly_sums AS (
     SELECT 
