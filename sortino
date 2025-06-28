@@ -12,40 +12,40 @@ FROM return_year_tab
 ), diff_return_power AS (
 SELECT date_day_year,   
        return_year,
-       avg(return_year) OVER () AS avg_return,
+       avg_return,
        (return_year - avg_return) AS diff_return,
        (power((return_year - avg_return), 2)) AS diff_return_power
 FROM avg_return_tab
 ), count_year_tab AS (
 SELECT date_day_year,   
        return_year,
-       avg(return_year) OVER () AS avg_return,
-       (return_year - avg_return) AS diff_return,
-       (power((return_year - avg_return), 2))AS diff_return_power,
+       avg_return,
+       diff_return,
+       diff_return_power,
        sum(diff_return_power) OVER () sum_power,
        count(date_day_year) OVER () AS count_year
 FROM diff_return_power
-GROUP BY date_day_year, return_year, avg_return, diff_return_power
+GROUP BY date_day_year, return_year, avg_return, diff_return_power, diff_return
 ), dispersion_tab AS (
 SELECT date_day_year,   
        return_year,
-       avg(return_year) OVER () AS avg_return,
-       (return_year - avg_return) AS diff_return,
-       (power((return_year - avg_return), 2)) AS diff_return_power,
-       sum(diff_return_power) OVER () sum_power,
-       count(date_day_year) OVER () AS count_year,
+       avg_return,
+       diff_return,
+       diff_return_power,
+       sum_power,
+       count_year,
        (sum_power / (count_year - 1)) AS dispersion
 FROM count_year_tab
 ), standard_deviation_tab_all AS (
 SELECT ROW_NUMBER() OVER () AS NUMBER, 
        date_day_year,   
        return_year,
-       avg(return_year) OVER () AS avg_return,
-       (return_year - avg_return) AS diff_return,
-       (power((return_year - avg_return), 2))AS diff_return_power,
-       sum(diff_return_power) OVER () sum_power,
-       count(date_day_year) OVER () AS count_year,
-       (sum_power / (count_year)) AS dispersion,
+       avg_return,
+       diff_return,
+       diff_return_power,
+       sum_power,
+       count_year,
+       dispersion,
        (SQRT(dispersion))AS standard_deviation
 FROM dispersion_tab
 ), standard_deviation_tab AS (
