@@ -37,8 +37,7 @@ SELECT date_day_year,
        (sum_power / (count_year - 1)) AS dispersion
 FROM count_year_tab
 ), standard_deviation_tab_all AS (
-SELECT ROW_NUMBER() OVER () AS NUMBER, 
-       date_day_year,   
+SELECT date_day_year,   
        return_year,
        avg_return,
        diff_return,
