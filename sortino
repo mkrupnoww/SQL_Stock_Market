@@ -49,11 +49,8 @@ SELECT ROW_NUMBER() OVER () AS NUMBER,
        (SQRT(dispersion))AS standard_deviation
 FROM dispersion_tab
 ), standard_deviation_tab AS (
-SELECT ROW_NUMBER() OVER () AS NUMBER,
-       standard_deviation 
+SELECT standard_deviation 
 FROM standard_deviation_tab_all
-ORDER BY NUMBER
-LIMIT 1 
 ), avg_year_return AS (
      WITH avg_year_profit AS 
 (
